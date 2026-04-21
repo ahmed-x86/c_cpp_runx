@@ -1,0 +1,24 @@
+# Dependency directories
+node_modules/
+
+# Build outputs
+dist/
+out/
+*.vsix
+
+# Compiled Binaries (المخلفات التي نتجت عن تجاربك)
+main
+index
+index_gcc
+index_tcc
+*.o
+*.obj
+*.exe
+*.s
+*.out
+
+# Logs & Cache
+*.log
+.vscode-test/
+.eslintcache
+.DS_Store
