@@ -2,8 +2,9 @@
   "name": "c-cpp-runx",
   "displayName": "c_c++_RunX",
   "description": "Run C and C++ code easily",
-  "version": "0.0.3",
+  "version": "1.0.0",
   "publisher": "ahmed-x86",
+  "icon": "icon.ico",
   "engines": {
     "vscode": "^1.108.0"
   },
