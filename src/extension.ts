@@ -49,6 +49,16 @@ export function activate(context: vscode.ExtensionContext) {
             }
         ];
 
+        // ==========================================
+        // خيار RunX c أو RunX c++ في القائمة المنسدلة
+        // ==========================================
+        const runxName = (fileExt === '.c') ? 'RunX c' : 'RunX c++';
+        options.push({
+            label: `$(zap) ${runxName}`,
+            description: `Compile with ${compiler} and run`,
+            id: 'runx-dynamic'
+        });
+
         const selection = await vscode.window.showQuickPick(options, {
             placeHolder: 'Select a build/run option...'
         });
@@ -61,19 +71,13 @@ export function activate(context: vscode.ExtensionContext) {
             }
             terminal.show();
 
-            // دالة مساعدة لعمل تأخير بسيط لضمان ظهور كل أمر في سطر منفصل
             const sleep = (ms: number) => new Promise(res => setTimeout(res, ms));
 
             if (selection.id === 'run') {
-                // الخطوة 1: الانتقال للمجلد
                 terminal.sendText(`cd "${dirPath}"`);
                 await sleep(100);
-
-                // الخطوة 2: الترجمة
                 terminal.sendText(`${compiler} "${fileName}" -o "${fileNameWithoutExt}"`);
                 await sleep(100);
-
-                // الخطوة 3: التشغيل
                 terminal.sendText(`./"${fileNameWithoutExt}"`);
                 
             } else if (selection.id === 'asm-att') {
@@ -85,6 +89,13 @@ export function activate(context: vscode.ExtensionContext) {
                 terminal.sendText(`cd "${dirPath}"`);
                 await sleep(100);
                 terminal.sendText(`${compiler} -S -masm=intel -fverbose-asm "${fileName}"`);
+                
+            } else if (selection.id === 'runx-dynamic') {
+                terminal.sendText(`cd "${dirPath}"`);
+                await sleep(100);
+                terminal.sendText(`${compiler} "${fileName}" -o "${fileNameWithoutExt}"`);
+                await sleep(100);
+                terminal.sendText(`./"${fileNameWithoutExt}"`);
             }
         }
     });
@@ -92,7 +103,7 @@ export function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(disposable);
 
     // ==========================================
-    // الإضافة تبدأ من هنا: الأمر الخاص بالزر الثاني (حرف i)
+    // الأمر الخاص بالزر الثاني (حرف i)
     // ==========================================
     const testMenuDisposable = vscode.commands.registerCommand('c-cpp-runx.showTestMenu', async () => {
         
@@ -114,7 +125,6 @@ export function activate(context: vscode.ExtensionContext) {
                 placeHolder: 'Select an option'
             });
 
-            // لو ضغطت على أي واحدة لا يسوي أي شيء
             if (subSelection) {
                 return; 
             }
@@ -122,9 +132,60 @@ export function activate(context: vscode.ExtensionContext) {
     });
 
     context.subscriptions.push(testMenuDisposable);
+
     // ==========================================
-    // نهاية الإضافة
+    // الإضافة الجديدة: أوامر التشغيل المباشرة للقائمة العلوية
     // ==========================================
+    
+    // تشغيل C
+    const runCDisposable = vscode.commands.registerCommand('c-cpp-runx.runC', async () => {
+        const editor = vscode.window.activeTextEditor;
+        if (!editor) return;
+        const document = editor.document;
+        const dirPath = path.dirname(document.fileName);
+        const fileName = path.basename(document.fileName);
+        const fileNameWithoutExt = path.basename(document.fileName, path.extname(document.fileName));
+
+        await document.save();
+
+        const terminalName = 'C/C++ RunX';
+        let terminal = vscode.window.terminals.find(t => t.name === terminalName);
+        if (!terminal) terminal = vscode.window.createTerminal(terminalName);
+        terminal.show();
+
+        const sleep = (ms: number) => new Promise(res => setTimeout(res, ms));
+        terminal.sendText(`cd "${dirPath}"`);
+        await sleep(100);
+        terminal.sendText(`gcc "${fileName}" -o "${fileNameWithoutExt}"`);
+        await sleep(100);
+        terminal.sendText(`./"${fileNameWithoutExt}"`);
+    });
+
+    // تشغيل C++
+    const runCppDisposable = vscode.commands.registerCommand('c-cpp-runx.runCpp', async () => {
+        const editor = vscode.window.activeTextEditor;
+        if (!editor) return;
+        const document = editor.document;
+        const dirPath = path.dirname(document.fileName);
+        const fileName = path.basename(document.fileName);
+        const fileNameWithoutExt = path.basename(document.fileName, path.extname(document.fileName));
+
+        await document.save();
+
+        const terminalName = 'C/C++ RunX';
+        let terminal = vscode.window.terminals.find(t => t.name === terminalName);
+        if (!terminal) terminal = vscode.window.createTerminal(terminalName);
+        terminal.show();
+
+        const sleep = (ms: number) => new Promise(res => setTimeout(res, ms));
+        terminal.sendText(`cd "${dirPath}"`);
+        await sleep(100);
+        terminal.sendText(`g++ "${fileName}" -o "${fileNameWithoutExt}"`);
+        await sleep(100);
+        terminal.sendText(`./"${fileNameWithoutExt}"`);
+    });
+
+    context.subscriptions.push(runCDisposable, runCppDisposable);
 }
 
 export function deactivate() {}
