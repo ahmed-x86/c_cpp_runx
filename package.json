@@ -2,32 +2,51 @@
   "name": "c-cpp-runx",
   "displayName": "c_c++_RunX",
   "description": "Run C and C++ code easily",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "publisher": "ahmed-x86",
   "engines": {
     "vscode": "^1.108.0"
   },
   "categories": [
+    "Programming Languages",
     "Other"
   ],
+  "keywords": [
+    "c",
+    "cpp",
+    "c++",
+    "runner"
+  ],
   "activationEvents": [
-    "onCommand:c-cpp-runx.showMenu"
+    "onLanguage:c",
+    "onLanguage:cpp"
   ],
   "main": "./dist/extension.js",
   "contributes": {
     "commands": [
       {
         "command": "c-cpp-runx.showMenu",
-        "title": "C++ RunX",
+        "title": "Run C/C++ (RunX)",
         "icon": "$(play)"
+      },
+      {
+        "command": "c-cpp-runx.showTestMenu",
+        "title": "C/C++ RunX: Settings & Tests",
+        "icon": "$(info)"
       }
     ],
     "menus": {
       "editor/title/run": [
         {
           "command": "c-cpp-runx.showMenu",
+          "when": "resourceLangId == c || resourceLangId == cpp"
+        }
+      ],
+      "editor/title": [
+        {
+          "command": "c-cpp-runx.showTestMenu",
           "group": "navigation@1",
-          "when": "resourceExtname =~ /\\.(cpp|c|cxx|cc)$/i"
+          "when": "resourceLangId == c || resourceLangId == cpp"
         }
       ]
     }
