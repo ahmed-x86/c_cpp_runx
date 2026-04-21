@@ -2,7 +2,7 @@
   "name": "c-cpp-runx",
   "displayName": "c_c++_RunX",
   "description": "Run C and C++ code easily",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "publisher": "ahmed-x86",
   "icon": "icon.ico",
   "engines": {
