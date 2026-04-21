@@ -31,11 +31,16 @@ export function activate(context: vscode.ExtensionContext) {
 
         await document.save();
 
+        // ==========================================
+        // خيار RunX c أو RunX c++ في القائمة المنسدلة
+        // ==========================================
+        const runxName = (fileExt === '.c') ? 'RunX c' : 'RunX c++';
+
         const options = [
             {
-                label: '$(play) Compile and Run',
-                description: 'Separate commands for each step',
-                id: 'run'
+                label: `$(zap) ${runxName}`,
+                description: `Compile with ${compiler} and run`,
+                id: 'runx-dynamic'
             },
             {
                 label: '$(file-code) Compile to Assembly (AT&T)',
@@ -48,16 +53,6 @@ export function activate(context: vscode.ExtensionContext) {
                 id: 'asm-intel'
             }
         ];
-
-        // ==========================================
-        // خيار RunX c أو RunX c++ في القائمة المنسدلة
-        // ==========================================
-        const runxName = (fileExt === '.c') ? 'RunX c' : 'RunX c++';
-        options.push({
-            label: `$(zap) ${runxName}`,
-            description: `Compile with ${compiler} and run`,
-            id: 'runx-dynamic'
-        });
 
         const selection = await vscode.window.showQuickPick(options, {
             placeHolder: 'Select a build/run option...'
@@ -73,7 +68,7 @@ export function activate(context: vscode.ExtensionContext) {
 
             const sleep = (ms: number) => new Promise(res => setTimeout(res, ms));
 
-            if (selection.id === 'run') {
+            if (selection.id === 'runx-dynamic') {
                 terminal.sendText(`cd "${dirPath}"`);
                 await sleep(100);
                 terminal.sendText(`${compiler} "${fileName}" -o "${fileNameWithoutExt}"`);
@@ -90,12 +85,6 @@ export function activate(context: vscode.ExtensionContext) {
                 await sleep(100);
                 terminal.sendText(`${compiler} -S -masm=intel -fverbose-asm "${fileName}"`);
                 
-            } else if (selection.id === 'runx-dynamic') {
-                terminal.sendText(`cd "${dirPath}"`);
-                await sleep(100);
-                terminal.sendText(`${compiler} "${fileName}" -o "${fileNameWithoutExt}"`);
-                await sleep(100);
-                terminal.sendText(`./"${fileNameWithoutExt}"`);
             }
         }
     });
