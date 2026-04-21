@@ -90,6 +90,41 @@ export function activate(context: vscode.ExtensionContext) {
     });
 
     context.subscriptions.push(disposable);
+
+    // ==========================================
+    // الإضافة تبدأ من هنا: الأمر الخاص بالزر الثاني (حرف i)
+    // ==========================================
+    const testMenuDisposable = vscode.commands.registerCommand('c-cpp-runx.showTestMenu', async () => {
+        
+        const mainOptions = [
+            { label: 'test', description: 'Open test options', id: 'test_main' }
+        ];
+
+        const selection = await vscode.window.showQuickPick(mainOptions, {
+            placeHolder: 'Settings & Tests'
+        });
+
+        if (selection && selection.id === 'test_main') {
+            const subOptions = [
+                { label: 'test 1', description: '' },
+                { label: 'test 2', description: '' }
+            ];
+
+            const subSelection = await vscode.window.showQuickPick(subOptions, {
+                placeHolder: 'Select an option'
+            });
+
+            // لو ضغطت على أي واحدة لا يسوي أي شيء
+            if (subSelection) {
+                return; 
+            }
+        }
+    });
+
+    context.subscriptions.push(testMenuDisposable);
+    // ==========================================
+    // نهاية الإضافة
+    // ==========================================
 }
 
 export function deactivate() {}
