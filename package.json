@@ -2,7 +2,7 @@
   "name": "c-cpp-runx",
   "displayName": "c_c++_RunX",
   "description": "Run C and C++ code easily",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "publisher": "ahmed-x86",
   "icon": "icon.ico",
   "engines": {
@@ -30,14 +30,6 @@
         "title": "RunX: Advanced Menu"
       },
       {
-        "command": "c-cpp-runx.runC",
-        "title": "RunX c"
-      },
-      {
-        "command": "c-cpp-runx.runCpp",
-        "title": "RunX c++"
-      },
-      {
         "command": "c-cpp-runx.showTestMenu",
         "title": "C/C++ RunX: Settings & Tests",
         "icon": "$(info)"
@@ -45,14 +37,6 @@
     ],
     "menus": {
       "editor/title/run": [
-        {
-          "command": "c-cpp-runx.runC",
-          "when": "resourceLangId == c"
-        },
-        {
-          "command": "c-cpp-runx.runCpp",
-          "when": "resourceLangId == cpp"
-        },
         {
           "command": "c-cpp-runx.showMenu",
           "when": "resourceLangId == c || resourceLangId == cpp"
