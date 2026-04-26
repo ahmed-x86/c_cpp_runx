@@ -121,6 +121,55 @@ export function activate(context: vscode.ExtensionContext) {
     });
 
     context.subscriptions.push(testMenuDisposable);
+
+    const runCDisposable = vscode.commands.registerCommand('c-cpp-runx.runC', async () => {
+        const editor = vscode.window.activeTextEditor;
+        if (!editor) return;
+        const document = editor.document;
+        const dirPath = path.dirname(document.fileName);
+        const fileName = path.basename(document.fileName);
+        const fileNameWithoutExt = path.basename(document.fileName, path.extname(document.fileName));
+
+        await document.save();
+
+        const terminalName = 'C/C++ RunX';
+        let terminal = vscode.window.terminals.find(t => t.name === terminalName);
+        if (!terminal) terminal = vscode.window.createTerminal(terminalName);
+        terminal.show();
+
+        const sleep = (ms: number) => new Promise(res => setTimeout(res, ms));
+        terminal.sendText(`cd "${dirPath}"`);
+        await sleep(100);
+        terminal.sendText(`gcc "${fileName}" -o "${fileNameWithoutExt}"`);
+        await sleep(100);
+        terminal.sendText(`./"${fileNameWithoutExt}"`);
+    });
+
+    
+    const runCppDisposable = vscode.commands.registerCommand('c-cpp-runx.runCpp', async () => {
+        const editor = vscode.window.activeTextEditor;
+        if (!editor) return;
+        const document = editor.document;
+        const dirPath = path.dirname(document.fileName);
+        const fileName = path.basename(document.fileName);
+        const fileNameWithoutExt = path.basename(document.fileName, path.extname(document.fileName));
+
+        await document.save();
+
+        const terminalName = 'C/C++ RunX';
+        let terminal = vscode.window.terminals.find(t => t.name === terminalName);
+        if (!terminal) terminal = vscode.window.createTerminal(terminalName);
+        terminal.show();
+
+        const sleep = (ms: number) => new Promise(res => setTimeout(res, ms));
+        terminal.sendText(`cd "${dirPath}"`);
+        await sleep(100);
+        terminal.sendText(`g++ "${fileName}" -o "${fileNameWithoutExt}"`);
+        await sleep(100);
+        terminal.sendText(`./"${fileNameWithoutExt}"`);
+    });
+
+    context.subscriptions.push(runCDisposable, runCppDisposable);
 }
 
 export function deactivate() {}
