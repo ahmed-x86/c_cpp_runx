@@ -3,6 +3,9 @@ import * as path from 'path';
 
 export function activate(context: vscode.ExtensionContext) {
 
+    // دالة مساعدة لجلب مترجم C الحالي المحفوظ في إعدادات الإضافة (الافتراضي هو gcc)
+    const getCCompiler = () => context.globalState.get<string>('c_compiler_choice', 'gcc');
+
     const disposable = vscode.commands.registerCommand('c-cpp-runx.showMenu', async () => {
         
         const editor = vscode.window.activeTextEditor;
@@ -23,7 +26,8 @@ export function activate(context: vscode.ExtensionContext) {
         if (['.cpp', '.c++', '.cc', '.cxx'].includes(fileExt)) {
             compiler = 'g++';
         } else if (fileExt === '.c') {
-            compiler = 'gcc';
+            // استخدام المترجم الذي اختاره المستخدم
+            compiler = getCCompiler();
         } else {
             vscode.window.showErrorMessage('Unsupported file extension!');
             return;
@@ -91,31 +95,39 @@ export function activate(context: vscode.ExtensionContext) {
 
     context.subscriptions.push(disposable);
 
-    // ==========================================
-    // الأمر الخاص بالزر الثاني (حرف i)
+
+    // الأمر الخاص بالزر الثاني (قائمة الإعدادات وتغيير المترجم)
     // ==========================================
     const testMenuDisposable = vscode.commands.registerCommand('c-cpp-runx.showTestMenu', async () => {
         
+        const currentCompiler = getCCompiler();
+
         const mainOptions = [
-            { label: 'test', description: 'Open test options', id: 'test_main' }
+            { 
+                label: '$(gear) change c compiler', 
+                description: `Current: ${currentCompiler}`, 
+                id: 'change_compiler' 
+            }
         ];
 
         const selection = await vscode.window.showQuickPick(mainOptions, {
-            placeHolder: 'Settings & Tests'
+            placeHolder: 'Settings'
         });
 
-        if (selection && selection.id === 'test_main') {
+        if (selection && selection.id === 'change_compiler') {
             const subOptions = [
-                { label: 'test 1', description: '' },
-                { label: 'test 2', description: '' }
+                { label: 'gcc', description: 'Use GNU Compiler Collection' },
+                { label: 'tcc', description: 'Use Tiny C Compiler' }
             ];
 
             const subSelection = await vscode.window.showQuickPick(subOptions, {
-                placeHolder: 'Select an option'
+                placeHolder: 'Select a C Compiler'
             });
 
             if (subSelection) {
-                return; 
+                // حفظ المترجم المختار في الـ globalState
+                await context.globalState.update('c_compiler_choice', subSelection.label);
+                vscode.window.showInformationMessage(`C Compiler successfully changed to: ${subSelection.label}`);
             }
         }
     });
@@ -137,10 +149,13 @@ export function activate(context: vscode.ExtensionContext) {
         if (!terminal) terminal = vscode.window.createTerminal(terminalName);
         terminal.show();
 
+        // سحب المترجم المختار
+        const compiler = getCCompiler();
+
         const sleep = (ms: number) => new Promise(res => setTimeout(res, ms));
         terminal.sendText(`cd "${dirPath}"`);
         await sleep(100);
-        terminal.sendText(`gcc "${fileName}" -o "${fileNameWithoutExt}"`);
+        terminal.sendText(`${compiler} "${fileName}" -o "${fileNameWithoutExt}"`);
         await sleep(100);
         terminal.sendText(`./"${fileNameWithoutExt}"`);
     });
