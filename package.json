@@ -1,11 +1,15 @@
 {
   "name": "c-cpp-runx",
   "displayName": "C/C++ RunX",
-  "description": "Powerful, fast, and lightweight tool to instantly compile and run C and C++ code using GCC, G++, or TCC.",
-  "version": "1.0.3",
+  "description": "The ultimate C/C++ runner & compiler by ahmed-x86. Instantly run, execute, and compile C and C++ code using GCC, G++, or TCC.",
+  "version": "1.0.4",
   "publisher": "ahmed-x86",
-  "icon": "icon.ico",
+  "icon": "icon.png",
   "license": "GPL-3.0-or-later",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ahmed-x86/c-cpp-runx.git"
+  },
   "engines": {
     "vscode": "^1.108.0"
   },
@@ -14,25 +18,11 @@
     "Other"
   ],
   "keywords": [
-    "c",
-    "cpp",
-    "c++",
-    "c runner",
-    "cpp runner",
-    "c compiler",
-    "cpp compiler",
-    "gcc",
-    "g++",
-    "tcc",
-    "tiny c compiler",
-    "assembly",
-    "ahmed",
-    "ahmed-x86",
-    "c/c++ runx",
-    "c_cpp",
-    "code runner",
-    "compile c",
-    "compile c++"
+    "c c++ cpp c/c++",
+    "runner run execute",
+    "compiler compile build",
+    "gcc g++ tcc",
+    "ahmed ahmed-x86"
   ],
   "activationEvents": [
     "onLanguage:c",
