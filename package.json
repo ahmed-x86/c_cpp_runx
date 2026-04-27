@@ -1,10 +1,11 @@
 {
   "name": "c-cpp-runx",
-  "displayName": "c_c++_RunX",
-  "description": "Run C and C++ code easily",
-  "version": "1.0.2",
+  "displayName": "C/C++ RunX",
+  "description": "Powerful, fast, and lightweight tool to instantly compile and run C and C++ code using GCC, G++, or TCC.",
+  "version": "1.0.3",
   "publisher": "ahmed-x86",
-  "icon": "icon.ico",
+  "icon": "icon.png",
+  "license": "GPL-3.0-or-later",
   "engines": {
     "vscode": "^1.108.0"
   },
@@ -16,36 +17,73 @@
     "c",
     "cpp",
     "c++",
-    "runner"
+    "c runner",
+    "cpp runner",
+    "c compiler",
+    "cpp compiler",
+    "gcc",
+    "g++",
+    "tcc",
+    "tiny c compiler",
+    "assembly",
+    "ahmed",
+    "ahmed-x86",
+    "c/c++ runx",
+    "c_cpp",
+    "code runner",
+    "compile c",
+    "compile c++"
   ],
   "activationEvents": [
     "onLanguage:c",
-    "onLanguage:cpp"
+    "onLanguage:cpp",
+    "onCommand:c-cpp-runx.showMenu",
+    "onCommand:c-cpp-runx.showTestMenu",
+    "onCommand:c-cpp-runx.runC",
+    "onCommand:c-cpp-runx.runCpp"
   ],
   "main": "./dist/extension.js",
   "contributes": {
     "commands": [
       {
         "command": "c-cpp-runx.showMenu",
-        "title": "RunX: Advanced Menu"
+        "title": "C/C++ RunX: Build & Run Menu",
+        "icon": "$(zap)"
+      },
+      {
+        "command": "c-cpp-runx.runC",
+        "title": "C/C++ RunX: Run C File"
+      },
+      {
+        "command": "c-cpp-runx.runCpp",
+        "title": "C/C++ RunX: Run C++ File"
       },
       {
         "command": "c-cpp-runx.showTestMenu",
-        "title": "C/C++ RunX: Settings & Tests",
-        "icon": "$(info)"
+        "title": "C/C++ RunX: Settings (Compiler)",
+        "icon": "$(gear)"
+      }
+    ],
+    "keybindings": [
+      {
+        "command": "c-cpp-runx.showMenu",
+        "key": "ctrl+alt+c",
+        "mac": "cmd+alt+c",
+        "when": "editorTextFocus && (resourceLangId == c || resourceLangId == cpp)"
       }
     ],
     "menus": {
       "editor/title/run": [
         {
           "command": "c-cpp-runx.showMenu",
+          "group": "navigation@1",
           "when": "resourceLangId == c || resourceLangId == cpp"
         }
       ],
       "editor/title": [
         {
           "command": "c-cpp-runx.showTestMenu",
-          "group": "navigation@1",
+          "group": "navigation@2",
           "when": "resourceLangId == c || resourceLangId == cpp"
         }
       ]
