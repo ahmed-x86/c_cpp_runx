@@ -22,3 +22,4 @@ index_tcc
 .vscode-test/
 .eslintcache
 .DS_Store
+release.py
