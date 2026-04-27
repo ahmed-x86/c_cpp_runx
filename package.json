@@ -4,7 +4,7 @@
   "description": "Powerful, fast, and lightweight tool to instantly compile and run C and C++ code using GCC, G++, or TCC.",
   "version": "1.0.3",
   "publisher": "ahmed-x86",
-  "icon": "icon.png",
+  "icon": "icon.ico",
   "license": "GPL-3.0-or-later",
   "engines": {
     "vscode": "^1.108.0"
