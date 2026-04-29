@@ -67,10 +67,10 @@ export function activate(context: vscode.ExtensionContext) {
             }
         ];
 
-        // الميزة الجديدة: خيار Cross-Compile و Wine يظهر فقط لمستخدمي Linux/Mac
+        
         if (!isWindows) {
             options.push({
-                label: '$(windows) Compile to Windows & Run (Wine)',
+                label: '$(terminal-cmd) Compile to Windows & Run (Wine)',
                 description: 'Cross-compile via MinGW and execute with Wine',
                 id: 'runx-wine'
             });
@@ -114,10 +114,10 @@ export function activate(context: vscode.ExtensionContext) {
                 
                 terminal.sendText(`cd "${dirPath}"`);
                 await sleep(100);
-                // الترجمة باستخدام MinGW
-                terminal.sendText(`${crossCompiler} "${fileName}" -o "${exeName}"`);
+                
+                terminal.sendText(`${crossCompiler} "${fileName}" -o "${exeName}" -static`);
                 await sleep(100);
-                // التشغيل عبر Wine مع كتم التحذيرات المزعجة (WINEDEBUG=-all)
+                
                 terminal.sendText(`WINEDEBUG=-all wine "${exeName}"`);
             }
         }
