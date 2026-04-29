@@ -145,7 +145,9 @@ export function activate(context: vscode.ExtensionContext) {
 
     const runCDisposable = vscode.commands.registerCommand('c-cpp-runx.runC', async () => {
         const editor = vscode.window.activeTextEditor;
-        if (!editor) return;
+        if (!editor) {
+            return;
+        }
         const document = editor.document;
         const dirPath = path.dirname(document.fileName);
         const fileName = path.basename(document.fileName);
@@ -158,7 +160,9 @@ export function activate(context: vscode.ExtensionContext) {
 
         const terminalName = 'C/C++ RunX';
         let terminal = vscode.window.terminals.find(t => t.name === terminalName);
-        if (!terminal) terminal = vscode.window.createTerminal(terminalName);
+        if (!terminal) {
+            terminal = vscode.window.createTerminal(terminalName);
+        }
         terminal.show();
 
         // سحب المترجم المختار
@@ -175,7 +179,9 @@ export function activate(context: vscode.ExtensionContext) {
     
     const runCppDisposable = vscode.commands.registerCommand('c-cpp-runx.runCpp', async () => {
         const editor = vscode.window.activeTextEditor;
-        if (!editor) return;
+        if (!editor) {
+            return;
+        }
         const document = editor.document;
         const dirPath = path.dirname(document.fileName);
         const fileName = path.basename(document.fileName);
@@ -188,7 +194,9 @@ export function activate(context: vscode.ExtensionContext) {
 
         const terminalName = 'C/C++ RunX';
         let terminal = vscode.window.terminals.find(t => t.name === terminalName);
-        if (!terminal) terminal = vscode.window.createTerminal(terminalName);
+        if (!terminal) {
+            terminal = vscode.window.createTerminal(terminalName);
+        }
         terminal.show();
 
         const sleep = (ms: number) => new Promise(res => setTimeout(res, ms));
