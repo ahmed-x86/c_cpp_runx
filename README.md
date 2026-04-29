@@ -1,6 +1,6 @@
 # C/C++ RunX
 
-**Version:** 1.0.5
+**Version:** 1.0.6
 
 The ultimate **C/C++ runner** and **C/C++ compiler** extension for VS Code. Whether you are looking to **compile C**, **run C++**, or execute code instantly, C/C++ RunX is your go-to **code runner**. Featuring seamless integration with **GCC**, **G++**, and **TCC** (Tiny C Compiler), it provides the fastest way to build, execute, and generate **Assembly** directly from your source files across Windows, Linux, and macOS.
 
@@ -10,6 +10,7 @@ The ultimate **C/C++ runner** and **C/C++ compiler** extension for VS Code. Whet
 
 * **Quick Execution:** Instantly **run C** and **run C++** files effortlessly with a single click or shortcut.
 * **Cross-Platform:** Smartly detects your operating system (Windows, Linux, macOS) to handle executable extensions (e.g., `.exe`) and execution paths (`.\` vs `./`) automatically.
+* **Cross-Compile & Simulate (Linux/Mac):** Instantly compile your C/C++ code to a Windows executable (`.exe`) using MinGW and run it seamlessly via Wine. Perfect for testing Windows-specific file paths and I/O streams (like `fstream`) without leaving your Unix environment.
 * **Compile Options:** 
   * Standard compilation and execution (RunX).
   * Generate Assembly code (.s file) in **AT&T** syntax.
@@ -25,6 +26,7 @@ The ultimate **C/C++ runner** and **C/C++ compiler** extension for VS Code. Whet
 For the extension to work properly, you must have the following compilers installed and added to your system's environment variable (PATH):
 * **C++:** `g++` compiler (typically comes with the GCC or MinGW toolchain).
 * **C:** `gcc` or `tcc` (Tiny C Compiler), depending on your selected preference in the extension settings.
+* **Windows Simulation (Linux/Mac only):** `mingw-w64` (for `x86_64-w64-mingw32-gcc/g++`) and `wine` must be installed to use the Cross-Compile feature.
 
 ---
 
@@ -33,7 +35,7 @@ For the extension to work properly, you must have the following compilers instal
 The extension provides several commands accessible via the **Command Palette** (`Ctrl+Shift+P` on Windows/Linux or `Cmd+Shift+P` on macOS):
 
 1. **`C/C++ RunX: Show Menu`**
-   * Opens the main quick pick menu with options to run the file or generate Assembly code.
+   * Opens the main quick pick menu with options to run the file, simulate Windows, or generate Assembly code.
    * **Shortcut:** `Ctrl + Alt + C` (or `Cmd + Alt + C` on Mac).
 
 2. **`C/C++ RunX: Settings (Change C Compiler)`**
@@ -48,6 +50,11 @@ The extension provides several commands accessible via the **Command Palette** (
 ---
 
 ## 📝 Release Notes
+
+### 1.0.6
+* **Windows Cross-Compilation & Simulation:** Added a highly requested "Compile to Windows & Run (Wine)" option exclusively for Linux and macOS users.
+* **Student-Friendly Feature:** This resolves the headache of testing Windows-specific file handling (`fstream`) and hardcoded pathing issues (like `C:\\...`) while working on a Unix-based system.
+* Muted verbose Wine debug logs for a clean, native-feeling terminal output.
 
 ### 1.0.5
 * **Complete Windows Support:** The extension now smartly detects `win32` environments. It accurately generates `.exe` output files and executes them using the proper PowerShell/CMD syntax (`.\`), resolving previous pathing issues.
