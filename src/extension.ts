@@ -39,20 +39,20 @@ export function activate(context: vscode.ExtensionContext) {
         await document.save();
 
         // ==========================================
-        // إعدادات الملف التنفيذي بناءً على النظام
+        // إعدادات الملف التنفيذي بناءً على النظام الأساسي
         // ==========================================
         const outFileName = isWindows ? `${fileNameWithoutExt}.exe` : fileNameWithoutExt;
         const runPrefix = isWindows ? `.\\` : `./`;
 
-        // ==========================================
-        // خيار RunX c أو RunX c++ في القائمة المنسدلة
-        // ==========================================
         const runxName = (fileExt === '.c') ? 'RunX c' : 'RunX c++';
 
+        // ==========================================
+        // القائمة المنسدلة
+        // ==========================================
         const options = [
             {
                 label: `$(zap) ${runxName}`,
-                description: `Compile with ${compiler} and run`,
+                description: `Compile with ${compiler} and run natively`,
                 id: 'runx-dynamic'
             },
             {
@@ -66,6 +66,15 @@ export function activate(context: vscode.ExtensionContext) {
                 id: 'asm-intel'
             }
         ];
+
+        // الميزة الجديدة: خيار Cross-Compile و Wine يظهر فقط لمستخدمي Linux/Mac
+        if (!isWindows) {
+            options.push({
+                label: '$(windows) Compile to Windows & Run (Wine)',
+                description: 'Cross-compile via MinGW and execute with Wine',
+                id: 'runx-wine'
+            });
+        }
 
         const selection = await vscode.window.showQuickPick(options, {
             placeHolder: 'Select a build/run option...'
@@ -98,6 +107,18 @@ export function activate(context: vscode.ExtensionContext) {
                 await sleep(100);
                 terminal.sendText(`${compiler} -S -masm=intel -fverbose-asm "${fileName}"`);
                 
+            } else if (selection.id === 'runx-wine') {
+                // منطق الترجمة والتشغيل لبيئة ويندوز الوهمية
+                const crossCompiler = (fileExt === '.c') ? 'x86_64-w64-mingw32-gcc' : 'x86_64-w64-mingw32-g++';
+                const exeName = `${fileNameWithoutExt}.exe`;
+                
+                terminal.sendText(`cd "${dirPath}"`);
+                await sleep(100);
+                // الترجمة باستخدام MinGW
+                terminal.sendText(`${crossCompiler} "${fileName}" -o "${exeName}"`);
+                await sleep(100);
+                // التشغيل عبر Wine مع كتم التحذيرات المزعجة (WINEDEBUG=-all)
+                terminal.sendText(`WINEDEBUG=-all wine "${exeName}"`);
             }
         }
     });
