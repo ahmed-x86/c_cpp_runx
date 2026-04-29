@@ -1,15 +1,17 @@
 # C/C++ RunX
 
-**Version:** 1.0.4
+**Version:** 1.0.5
 
-The ultimate **C/C++ runner** and **C/C++ compiler** extension for VS Code. Whether you are looking to **compile C**, **run C++**, or execute code instantly, C/C++ RunX is your go-to **code runner**. Featuring seamless integration with **GCC**, **G++**, and **TCC** (Tiny C Compiler), it provides the fastest way to build, execute, and generate **Assembly** directly from your source files.
+The ultimate **C/C++ runner** and **C/C++ compiler** extension for VS Code. Whether you are looking to **compile C**, **run C++**, or execute code instantly, C/C++ RunX is your go-to **code runner**. Featuring seamless integration with **GCC**, **G++**, and **TCC** (Tiny C Compiler), it provides the fastest way to build, execute, and generate **Assembly** directly from your source files across Windows, Linux, and macOS.
 
 ---
 
 ## 🌟 Features
 
 * **Quick Execution:** Instantly **run C** and **run C++** files effortlessly with a single click or shortcut.
-* **Compile Options:** * Standard compilation and execution (RunX).
+* **Cross-Platform:** Smartly detects your operating system (Windows, Linux, macOS) to handle executable extensions (e.g., `.exe`) and execution paths (`.\` vs `./`) automatically.
+* **Compile Options:** 
+  * Standard compilation and execution (RunX).
   * Generate Assembly code (.s file) in **AT&T** syntax.
   * Generate Assembly code (.s file) in **Intel** syntax (with `fverbose-asm` for annotated code).
 * **Compiler Selection:** Easily switch your active C compiler between `gcc` (default) and `tcc`. The extension automatically remembers your choice globally across all your workspaces.
@@ -47,6 +49,10 @@ The extension provides several commands accessible via the **Command Palette** (
 
 ## 📝 Release Notes
 
+### 1.0.5
+* **Complete Windows Support:** The extension now smartly detects `win32` environments. It accurately generates `.exe` output files and executes them using the proper PowerShell/CMD syntax (`.\`), resolving previous pathing issues.
+* **FOSS License Added:** Officially licensed under the **GNU General Public License v3.0 (GPL-3.0)**, embracing the free and open-source software philosophy.
+
 ### 1.0.4
 * **Extreme Optimization:** Compressed extension icon (`icon.png`), reducing the VSIX footprint significantly for lightning-fast downloads.
 * **SEO & Discoverability:** Improved Marketplace metadata so you can find the best C/C++ runner faster.
@@ -56,6 +62,12 @@ The extension provides several commands accessible via the **Command Palette** (
 * **Added Settings Menu:** You can now change your preferred C compiler dynamically between `gcc` and `tcc`.
 * **Global State Support:** The extension now permanently remembers your compiler choice even after restarting VS Code.
 * General stability improvements and code refactoring.
+
+---
+
+## 📜 License
+
+This extension is Free and Open Source Software (FOSS). It is licensed under the **[GNU General Public License v3.0](https://www.gnu.org/licenses/gpl-3.0.html)**. You are free to redistribute and/or modify it under the terms of this license.
 
 ---
 
