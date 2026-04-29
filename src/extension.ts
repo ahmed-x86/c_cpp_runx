@@ -6,6 +6,9 @@ export function activate(context: vscode.ExtensionContext) {
     // دالة مساعدة لجلب مترجم C الحالي المحفوظ في إعدادات الإضافة (الافتراضي هو gcc)
     const getCCompiler = () => context.globalState.get<string>('c_compiler_choice', 'gcc');
 
+    // التحقق من نظام التشغيل لتوحيد بيئة العمل
+    const isWindows = process.platform === 'win32';
+
     const disposable = vscode.commands.registerCommand('c-cpp-runx.showMenu', async () => {
         
         const editor = vscode.window.activeTextEditor;
@@ -34,6 +37,12 @@ export function activate(context: vscode.ExtensionContext) {
         }
 
         await document.save();
+
+        // ==========================================
+        // إعدادات الملف التنفيذي بناءً على النظام
+        // ==========================================
+        const outFileName = isWindows ? `${fileNameWithoutExt}.exe` : fileNameWithoutExt;
+        const runPrefix = isWindows ? `.\\` : `./`;
 
         // ==========================================
         // خيار RunX c أو RunX c++ في القائمة المنسدلة
@@ -75,9 +84,9 @@ export function activate(context: vscode.ExtensionContext) {
             if (selection.id === 'runx-dynamic') {
                 terminal.sendText(`cd "${dirPath}"`);
                 await sleep(100);
-                terminal.sendText(`${compiler} "${fileName}" -o "${fileNameWithoutExt}"`);
+                terminal.sendText(`${compiler} "${fileName}" -o "${outFileName}"`);
                 await sleep(100);
-                terminal.sendText(`./"${fileNameWithoutExt}"`);
+                terminal.sendText(`${runPrefix}"${outFileName}"`);
                 
             } else if (selection.id === 'asm-att') {
                 terminal.sendText(`cd "${dirPath}"`);
@@ -142,6 +151,9 @@ export function activate(context: vscode.ExtensionContext) {
         const fileName = path.basename(document.fileName);
         const fileNameWithoutExt = path.basename(document.fileName, path.extname(document.fileName));
 
+        const outFileName = isWindows ? `${fileNameWithoutExt}.exe` : fileNameWithoutExt;
+        const runPrefix = isWindows ? `.\\` : `./`;
+
         await document.save();
 
         const terminalName = 'C/C++ RunX';
@@ -155,9 +167,9 @@ export function activate(context: vscode.ExtensionContext) {
         const sleep = (ms: number) => new Promise(res => setTimeout(res, ms));
         terminal.sendText(`cd "${dirPath}"`);
         await sleep(100);
-        terminal.sendText(`${compiler} "${fileName}" -o "${fileNameWithoutExt}"`);
+        terminal.sendText(`${compiler} "${fileName}" -o "${outFileName}"`);
         await sleep(100);
-        terminal.sendText(`./"${fileNameWithoutExt}"`);
+        terminal.sendText(`${runPrefix}"${outFileName}"`);
     });
 
     
@@ -169,6 +181,9 @@ export function activate(context: vscode.ExtensionContext) {
         const fileName = path.basename(document.fileName);
         const fileNameWithoutExt = path.basename(document.fileName, path.extname(document.fileName));
 
+        const outFileName = isWindows ? `${fileNameWithoutExt}.exe` : fileNameWithoutExt;
+        const runPrefix = isWindows ? `.\\` : `./`;
+
         await document.save();
 
         const terminalName = 'C/C++ RunX';
@@ -179,9 +194,9 @@ export function activate(context: vscode.ExtensionContext) {
         const sleep = (ms: number) => new Promise(res => setTimeout(res, ms));
         terminal.sendText(`cd "${dirPath}"`);
         await sleep(100);
-        terminal.sendText(`g++ "${fileName}" -o "${fileNameWithoutExt}"`);
+        terminal.sendText(`g++ "${fileName}" -o "${outFileName}"`);
         await sleep(100);
-        terminal.sendText(`./"${fileNameWithoutExt}"`);
+        terminal.sendText(`${runPrefix}"${outFileName}"`);
     });
 
     context.subscriptions.push(runCDisposable, runCppDisposable);
