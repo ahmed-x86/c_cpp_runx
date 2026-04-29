@@ -1,0 +1,77 @@
+{
+  "Hello World (C)": {
+    "prefix": "hello_world_c",
+    "body": [
+      "#include <stdio.h>",
+      "",
+      "int main() {",
+      "\tprintf(\"Hello, World!\\n\");",
+      "\treturn 0;",
+      "}"
+    ],
+    "description": "Basic Hello World template for C"
+  },
+  "Hello World (C++)": {
+    "prefix": "hello_world_c++",
+    "body": [
+      "#include <iostream> // Preprocessor directive to include input/output tools",
+      "using namespace std;",
+      "",
+      "int main() { // Entry point of every C++ program",
+      "\tcout << \"Hello World!\" << endl;",
+      "\treturn 0;",
+      "}"
+    ],
+    "description": "Basic Hello World template for C++"
+  },
+  "File Handling C++ (Windows)": {
+    "prefix": "fstream_c++_windows",
+    "body": [
+      "#include <iostream>",
+      "#include <fstream>",
+      "#include <string>",
+      "using namespace std;",
+      "",
+      "int main() {",
+      "\t// Note the double backslashes for Windows paths",
+      "\tstring path = \"C:\\\\users\\\\Public\\\\test.txt\";",
+      "\tofstream file(path);",
+      "",
+      "\tif (file.is_open()) {",
+      "\t\tfile << \"Hello from Windows fstream!\" << endl;",
+      "\t\tfile.close();",
+      "\t\tcout << \"File created successfully at: \" << path << endl;",
+      "\t} else {",
+      "\t\tcerr << \"Error: Could not open path: \" << path << endl;",
+      "\t}",
+      "\treturn 0;",
+      "}"
+    ],
+    "description": "C++ fstream template using Windows paths"
+  },
+  "File Handling C++ (Unix/Linux)": {
+    "prefix": "fstream_c++_unix",
+    "body": [
+      "#include <iostream>",
+      "#include <fstream>",
+      "#include <string>",
+      "using namespace std;",
+      "",
+      "int main() {",
+      "\t// Standard forward slashes for Unix-like systems",
+      "\tstring path = \"/tmp/test.txt\"; // or just relative \"test.txt\"",
+      "\tofstream file(path);",
+      "",
+      "\tif (file.is_open()) {",
+      "\t\tfile << \"hi i use arch btw from Unix fstream!\" << endl;",
+      "\t\tfile.close();",
+      "\t\tcout << \"File created successfully at: \" << path << endl;",
+      "\t} else {",
+      "\t\tcerr << \"Error: Could not open path: \" << path << endl;",
+      "\t}",
+      "\treturn 0;",
+      "}"
+    ],
+    "description": "C++ fstream template using Unix-like paths"
+  }
+}
