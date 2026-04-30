@@ -1,6 +1,6 @@
 # C/C++ RunX
 
-**Version:** 1.1.0
+**Version:** 1.1.1
 
 The ultimate **C/C++ runner** and **C/C++ compiler** extension for VS Code. Whether you are looking to **compile C**, **run C++**, or execute code instantly, C/C++ RunX is your go-to **code runner**. Featuring seamless integration with **GCC**, **G++**, and **TCC** (Tiny C Compiler), it provides the fastest way to build, execute, and generate **Assembly** directly from your source files across Windows, GNU/Linux, and macOS.
 
@@ -10,7 +10,7 @@ The ultimate **C/C++ runner** and **C/C++ compiler** extension for VS Code. Whet
 
 * **Quick Execution:** Instantly **run C** and **run C++** files effortlessly with a single click or shortcut.
 * **Smart Syntax Checking:** Automatically checks C/C++ syntax in the background before execution. If errors are found, it highlights the exact word with red squiggles and inline gutter markers, keeping your terminal perfectly clean!
-* **Build Profiles (New!):** Easily switch between **Normal** and **Release (-O3 -s)** build modes. Instantly generate highly optimized, lightweight executables without writing complex Makefiles.
+* **Build Profiles:** Easily switch between **Normal** and **Release (-O3 -s)** build modes. Instantly generate highly optimized, lightweight executables without writing complex Makefiles.
 * **Smart Snippets:** Includes ready-to-use templates for C/C++ Hello World and advanced Windows/Unix `fstream` examples to speed up your coding workflow.
 * **Cross-Platform:** Smartly detects your operating system (Windows, GNU/Linux, macOS) to handle executable extensions (e.g., `.exe`) and execution paths (`.\` vs `./`) automatically.
 * **Cross-Compile & Simulate (GNU/Linux & Mac):** Instantly compile your C/C++ code to a Windows executable (`.exe`) using MinGW and run it seamlessly via Wine. Perfect for testing Windows-specific file paths (`C:\\...`) and I/O streams (`fstream`) without leaving your Unix environment.
@@ -35,7 +35,7 @@ For the extension to work properly, you must have the following compilers instal
 ## 🚀 Usage
 
 ### 1. Commands & Shortcuts
-* **`C/C++ RunX: Show Menu`**: Opens the build/run menu (`Ctrl + Alt + C` / `Cmd + Alt + C`).
+* **`C/C++ RunX: Show Menu`** (`Ctrl + Alt + C` / `Cmd + Alt + C`): Opens the build/run menu. **Pro Tip:** You can press numbers `1-4` to instantly select and execute a build option without using your mouse!
 * **`C/C++ RunX: Settings`**: Switch the active C compiler, change the Build Profile, and toggle Wine logs.
 * **`Direct Run`**: Direct commands for `Run C` and `Run C++`.
 
@@ -49,6 +49,10 @@ Just type the prefix in a `.c` or `.cpp` file and hit `Tab`:
 ---
 
 ## 📝 Release Notes
+
+### 1.1.1
+* **Lightning-Fast Navigation:** Added numbered hotkeys (1-4) to the RunX Menu. You can now press `Ctrl+Alt+C` followed instantly by a number to execute your desired build command at blazing speed without lifting your hands from the keyboard!
+* **Keybinding Visibility:** The `Ctrl+Alt+C` shortcut is now officially registered in the VS Code Command Palette to serve as a constant visual hint.
 
 ### 1.1.0
 * **Introduced Build Profiles:** Added a powerful new setting to switch between "Normal" and "Release" builds. Selecting "Release" automatically applies `-O3` (maximum optimization) and `-s` (strip symbols) flags to your compilation commands. This allows developers to instantly create blazingly fast, production-ready executables directly from the menu.
