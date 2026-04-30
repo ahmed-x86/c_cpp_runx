@@ -3,9 +3,7 @@ import * as path from 'path';
 import * as cp from 'child_process';
 import * as fs from 'fs';
 
-// ==========================================
-// متغيرات نظام الأخطاء والديكورات
-// ==========================================
+
 export let diagnosticCollection: vscode.DiagnosticCollection;
 
 const errorGutterDecoration = vscode.window.createTextEditorDecorationType({
@@ -40,7 +38,7 @@ export async function checkSyntax(compiler: string, filePath: string, document: 
         const dirPath = path.dirname(filePath);
         const fileName = path.basename(filePath);
         
-        // استخدام -fsyntax-only مع gcc/g++ و -c مع tcc
+        
         const checkArgs = compiler.includes('tcc') ? '-c' : '-fsyntax-only';
         const cmd = `${compiler} ${checkArgs} "${fileName}"`;
 
@@ -49,7 +47,7 @@ export async function checkSyntax(compiler: string, filePath: string, document: 
             const diagnostics: vscode.Diagnostic[] = [];
             const errorRanges: vscode.Range[] = [];
 
-            // Regex يتوافق مع مخرجات GCC (يدعم مسارات الويندوز واللينكس)
+            
             const gccRegex = /^(?:[a-zA-Z]:\\[^:]+|[^:]+):(\d+):(\d+):\s+(error|warning|fatal error):\s+(.*)$/gm;
             let match;
 
@@ -105,16 +103,23 @@ export async function checkSyntax(compiler: string, filePath: string, document: 
     });
 }
 
-// ==========================================
-// الدالة الرئيسية للإضافة
-// ==========================================
+
 export function activate(context: vscode.ExtensionContext) {
 
-    // تفعيل نظام الأخطاء
+    
     setupDiagnostics(context);
 
+    
     const getCCompiler = () => context.globalState.get<string>('c_compiler_choice', 'gcc');
     const getHideWineLogs = () => context.globalState.get<boolean>('hide_wine_logs', false);
+    const getBuildProfile = () => context.globalState.get<string>('build_profile', 'Normal');
+    
+    
+    const getBuildFlagsStr = () => {
+        const profile = getBuildProfile();
+        return profile === 'Release (-O3 -s)' ? ' -O3 -s' : '';
+    };
+
     const isWindows = process.platform === 'win32';
 
     const disposable = vscode.commands.registerCommand('c-cpp-runx.showMenu', async () => {
@@ -148,20 +153,21 @@ export function activate(context: vscode.ExtensionContext) {
         const outFileName = isWindows ? `${fileNameWithoutExt}.exe` : fileNameWithoutExt;
         const runPrefix = isWindows ? `.\\` : `./`;
         const runxName = (fileExt === '.c') ? 'RunX c' : 'RunX c++';
+        const buildProfileInfo = getBuildProfile() === 'Normal' ? '' : ` [${getBuildProfile()}]`;
 
         const options = [
             {
-                label: `$(zap) ${runxName}`,
+                label: `$(zap) ${runxName}${buildProfileInfo}`,
                 description: `Compile with ${compiler} and run natively`,
                 id: 'runx-dynamic'
             },
             {
-                label: '$(file-code) Compile to Assembly (AT&T)',
+                label: `$(file-code) Compile to Assembly (AT&T)${buildProfileInfo}`,
                 description: 'Generate .s file',
                 id: 'asm-att'
             },
             {
-                label: '$(file-binary) Compile to Assembly (Intel)',
+                label: `$(file-binary) Compile to Assembly (Intel)${buildProfileInfo}`,
                 description: 'Generate Intel syntax .s file',
                 id: 'asm-intel'
             }
@@ -169,7 +175,7 @@ export function activate(context: vscode.ExtensionContext) {
 
         if (!isWindows) {
             options.push({
-                label: '$(terminal-cmd) Compile to Windows & Run (Wine)',
+                label: `$(terminal-cmd) Compile to Windows & Run (Wine)${buildProfileInfo}`,
                 description: 'Cross-compile via MinGW and execute with Wine',
                 id: 'runx-wine'
             });
@@ -180,9 +186,7 @@ export function activate(context: vscode.ExtensionContext) {
         });
 
         if (selection) {
-            // ==============================================
-            // فحص الكود قبل إرساله للتيرمنال
-            // ==============================================
+            
             let compilerToCheck = compiler;
             if (selection.id === 'runx-wine') {
                 compilerToCheck = (fileExt === '.c') ? 'x86_64-w64-mingw32-gcc' : 'x86_64-w64-mingw32-g++';
@@ -190,7 +194,7 @@ export function activate(context: vscode.ExtensionContext) {
             
             const isSyntaxValid = await checkSyntax(compilerToCheck, filePath, document);
             if (!isSyntaxValid) {
-                return; // إيقاف العملية إذا وجدنا أخطاء
+                return; 
             }
 
             const terminalName = 'C/C++ RunX';
@@ -201,23 +205,24 @@ export function activate(context: vscode.ExtensionContext) {
             terminal.show();
 
             const sleep = (ms: number) => new Promise(res => setTimeout(res, ms));
+            const flagsStr = getBuildFlagsStr();
 
             if (selection.id === 'runx-dynamic') {
                 terminal.sendText(`cd "${dirPath}"`);
                 await sleep(100);
-                terminal.sendText(`${compiler} "${fileName}" -o "${outFileName}"`);
+                terminal.sendText(`${compiler}${flagsStr} "${fileName}" -o "${outFileName}"`);
                 await sleep(100);
                 terminal.sendText(`${runPrefix}"${outFileName}"`);
                 
             } else if (selection.id === 'asm-att') {
                 terminal.sendText(`cd "${dirPath}"`);
                 await sleep(100);
-                terminal.sendText(`${compiler} -S "${fileName}"`);
+                terminal.sendText(`${compiler}${flagsStr} -S "${fileName}"`);
                 
             } else if (selection.id === 'asm-intel') {
                 terminal.sendText(`cd "${dirPath}"`);
                 await sleep(100);
-                terminal.sendText(`${compiler} -S -masm=intel -fverbose-asm "${fileName}"`);
+                terminal.sendText(`${compiler}${flagsStr} -S -masm=intel -fverbose-asm "${fileName}"`);
                 
             } else if (selection.id === 'runx-wine') {
                 const crossCompiler = (fileExt === '.c') ? 'x86_64-w64-mingw32-gcc' : 'x86_64-w64-mingw32-g++';
@@ -225,7 +230,7 @@ export function activate(context: vscode.ExtensionContext) {
                 
                 terminal.sendText(`cd "${dirPath}"`);
                 await sleep(100);
-                terminal.sendText(`${crossCompiler} "${fileName}" -o "${exeName}" -static`);
+                terminal.sendText(`${crossCompiler}${flagsStr} "${fileName}" -o "${exeName}" -static`);
                 await sleep(100);
                 
                 const hideLogs = getHideWineLogs();
@@ -243,6 +248,7 @@ export function activate(context: vscode.ExtensionContext) {
     const settingsMenuDisposable = vscode.commands.registerCommand('c-cpp-runx.runxSettings', async () => {
         const currentCompiler = getCCompiler();
         const hideLogs = getHideWineLogs();
+        const buildProfile = getBuildProfile();
 
         const mainOptions = [
             { 
@@ -254,6 +260,11 @@ export function activate(context: vscode.ExtensionContext) {
                 label: hideLogs ? '$(eye) turn ON wine logs' : '$(eye-closed) turn OFF wine logs',
                 description: hideLogs ? 'Current: OFF (Showing results only)' : 'Current: ON (Showing logs & errors)',
                 id: 'toggle_wine_logs'
+            },
+            {
+                label: buildProfile === 'Normal' ? '$(tools) Build Profile' : '$(rocket) Build Profile',
+                description: `Current: ${buildProfile}`,
+                id: 'toggle_build_profile'
             }
         ];
 
@@ -280,6 +291,20 @@ export function activate(context: vscode.ExtensionContext) {
                 const newState = !hideLogs;
                 await context.globalState.update('hide_wine_logs', newState);
                 vscode.window.showInformationMessage(`Wine logs are now ${newState ? 'OFF' : 'ON'}`);
+            } else if (selection.id === 'toggle_build_profile') {
+                const profiles = [
+                    { label: 'Normal', description: 'Default compilation without extra flags' },
+                    { label: 'Release (-O3 -s)', description: 'Full optimization and stripped symbols' }
+                ];
+                
+                const subSelection = await vscode.window.showQuickPick(profiles, {
+                    placeHolder: 'Select Build Profile'
+                });
+
+                if (subSelection) {
+                    await context.globalState.update('build_profile', subSelection.label);
+                    vscode.window.showInformationMessage(`Build Profile set to: ${subSelection.label}`);
+                }
             }
         }
     });
@@ -313,9 +338,11 @@ export function activate(context: vscode.ExtensionContext) {
         terminal.show();
 
         const sleep = (ms: number) => new Promise(res => setTimeout(res, ms));
+        const flagsStr = getBuildFlagsStr();
+
         terminal.sendText(`cd "${dirPath}"`);
         await sleep(100);
-        terminal.sendText(`${compiler} "${fileName}" -o "${outFileName}"`);
+        terminal.sendText(`${compiler}${flagsStr} "${fileName}" -o "${outFileName}"`);
         await sleep(100);
         terminal.sendText(`${runPrefix}"${outFileName}"`);
     });
@@ -345,9 +372,11 @@ export function activate(context: vscode.ExtensionContext) {
         terminal.show();
 
         const sleep = (ms: number) => new Promise(res => setTimeout(res, ms));
+        const flagsStr = getBuildFlagsStr();
+
         terminal.sendText(`cd "${dirPath}"`);
         await sleep(100);
-        terminal.sendText(`g++ "${fileName}" -o "${outFileName}"`);
+        terminal.sendText(`g++${flagsStr} "${fileName}" -o "${outFileName}"`);
         await sleep(100);
         terminal.sendText(`${runPrefix}"${outFileName}"`);
     });
