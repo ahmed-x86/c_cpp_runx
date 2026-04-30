@@ -2,7 +2,7 @@
   "name": "c-cpp-runx",
   "displayName": "C/C++ RunX",
   "description": "The ultimate C/C++ runner & compiler by ahmed-x86. Instantly run, execute, and compile C and C++ code using GCC, G++, or TCC.",
-  "version": "1.0.8",
+  "version": "1.0.9",
   "publisher": "ahmed-x86",
   "icon": "icon.png",
   "license": "GPL-3.0-or-later",
