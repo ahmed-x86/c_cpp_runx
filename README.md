@@ -1,6 +1,6 @@
 # C/C++ RunX
 
-**Version:** 1.0.7
+**Version:** 1.0.8
 
 The ultimate **C/C++ runner** and **C/C++ compiler** extension for VS Code. Whether you are looking to **compile C**, **run C++**, or execute code instantly, C/C++ RunX is your go-to **code runner**. Featuring seamless integration with **GCC**, **G++**, and **TCC** (Tiny C Compiler), it provides the fastest way to build, execute, and generate **Assembly** directly from your source files across Windows, Linux, and macOS.
 
@@ -12,11 +12,10 @@ The ultimate **C/C++ runner** and **C/C++ compiler** extension for VS Code. Whet
 * **Smart Snippets:** Includes ready-to-use templates for C/C++ Hello World and advanced Windows/Unix `fstream` examples to speed up your coding workflow.
 * **Cross-Platform:** Smartly detects your operating system (Windows, Linux, macOS) to handle executable extensions (e.g., `.exe`) and execution paths (`.\` vs `./`) automatically.
 * **Cross-Compile & Simulate (Linux/Mac):** Instantly compile your C/C++ code to a Windows executable (`.exe`) using MinGW and run it seamlessly via Wine. Perfect for testing Windows-specific file paths (`C:\\...`) and I/O streams (`fstream`) without leaving your Unix environment.
-* **Compile Options:** 
-  * Standard compilation and execution (RunX).
+* **Compile Options:** * Standard compilation and execution (RunX).
   * Generate Assembly code (.s file) in **AT&T** syntax.
   * Generate Assembly code (.s file) in **Intel** syntax (with `fverbose-asm` for annotated code).
-* **Compiler Selection:** Easily switch your active C compiler between `gcc` (default) and `tcc`. The extension automatically remembers your choice globally across all your workspaces.
+* **Settings & Customization:** Easily switch your active C compiler between `gcc` (default) and `tcc`, and easily toggle **Wine logs (ON/OFF)** for cleaner terminal output. The extension automatically remembers your choices globally across all your workspaces.
 * **Auto-Save:** Automatically saves your active document before compiling to ensure you are always running the latest code.
 * **Clean Terminal:** Executes all commands in a dedicated, reusable integrated terminal named `C/C++ RunX`.
 
@@ -35,7 +34,7 @@ For the extension to work properly, you must have the following compilers instal
 
 ### 1. Commands & Shortcuts
 * **`C/C++ RunX: Show Menu`**: Opens the build/run menu (`Ctrl + Alt + C` / `Cmd + Alt + C`).
-* **`C/C++ RunX: Settings`**: Switch the active C compiler.
+* **`C/C++ RunX: Settings`**: Switch the active C compiler and toggle Wine logs.
 * **`Direct Run`**: Direct commands for `Run C` and `Run C++`.
 
 ### 2. Built-in Snippets
@@ -48,6 +47,9 @@ Just type the prefix in a `.c` or `.cpp` file and hit `Tab`:
 ---
 
 ## 📝 Release Notes
+
+### 1.0.8
+* **Wine Logs Toggle:** Added a new option in the `RunX Settings` menu to turn Wine debugging logs ON or OFF. This allows for a much cleaner terminal output by hiding standard Wine warnings/errors when simulating Windows executables on Linux/macOS.
 
 ### 1.0.7
 * **Added Code Snippets:** Introduced professional templates for C, C++, and `fstream` (Windows/Unix versions) to help students and developers get started faster.
