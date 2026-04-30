@@ -3,10 +3,13 @@ import * as path from 'path';
 
 export function activate(context: vscode.ExtensionContext) {
 
-    // دالة مساعدة لجلب مترجم C الحالي المحفوظ في إعدادات الإضافة (الافتراضي هو gcc)
+    
     const getCCompiler = () => context.globalState.get<string>('c_compiler_choice', 'gcc');
+    
+    
+    const getHideWineLogs = () => context.globalState.get<boolean>('hide_wine_logs', false);
 
-    // التحقق من نظام التشغيل لتوحيد بيئة العمل
+    
     const isWindows = process.platform === 'win32';
 
     const disposable = vscode.commands.registerCommand('c-cpp-runx.showMenu', async () => {
@@ -29,7 +32,7 @@ export function activate(context: vscode.ExtensionContext) {
         if (['.cpp', '.c++', '.cc', '.cxx'].includes(fileExt)) {
             compiler = 'g++';
         } else if (fileExt === '.c') {
-            // استخدام المترجم الذي اختاره المستخدم
+            
             compiler = getCCompiler();
         } else {
             vscode.window.showErrorMessage('Unsupported file extension!');
@@ -38,17 +41,13 @@ export function activate(context: vscode.ExtensionContext) {
 
         await document.save();
 
-        // ==========================================
-        // إعدادات الملف التنفيذي بناءً على النظام الأساسي
-        // ==========================================
+
         const outFileName = isWindows ? `${fileNameWithoutExt}.exe` : fileNameWithoutExt;
         const runPrefix = isWindows ? `.\\` : `./`;
 
         const runxName = (fileExt === '.c') ? 'RunX c' : 'RunX c++';
 
-        // ==========================================
-        // القائمة المنسدلة
-        // ==========================================
+
         const options = [
             {
                 label: `$(zap) ${runxName}`,
@@ -67,7 +66,6 @@ export function activate(context: vscode.ExtensionContext) {
             }
         ];
 
-        
         if (!isWindows) {
             options.push({
                 label: '$(terminal-cmd) Compile to Windows & Run (Wine)',
@@ -118,7 +116,13 @@ export function activate(context: vscode.ExtensionContext) {
                 terminal.sendText(`${crossCompiler} "${fileName}" -o "${exeName}" -static`);
                 await sleep(100);
                 
-                terminal.sendText(`WINEDEBUG=-all wine "${exeName}"`);
+                
+                const hideLogs = getHideWineLogs();
+                const wineCommand = hideLogs 
+                    ? `WINEDEBUG=-all wine "${exeName}" 2>/dev/null` 
+                    : `WINEDEBUG=-all wine "${exeName}"`;
+                
+                terminal.sendText(wineCommand);
             }
         }
     });
@@ -126,43 +130,55 @@ export function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(disposable);
 
 
-    // الأمر الخاص بالزر الثاني (قائمة الإعدادات وتغيير المترجم)
-    // ==========================================
-    const testMenuDisposable = vscode.commands.registerCommand('c-cpp-runx.showTestMenu', async () => {
+
+    const settingsMenuDisposable = vscode.commands.registerCommand('c-cpp-runx.runxSettings', async () => {
         
         const currentCompiler = getCCompiler();
+        const hideLogs = getHideWineLogs();
 
         const mainOptions = [
             { 
                 label: '$(gear) change c compiler', 
                 description: `Current: ${currentCompiler}`, 
                 id: 'change_compiler' 
+            },
+            {
+                label: hideLogs ? '$(eye) turn ON wine logs' : '$(eye-closed) turn OFF wine logs',
+                description: hideLogs ? 'Current: OFF (Showing results only)' : 'Current: ON (Showing logs & errors)',
+                id: 'toggle_wine_logs'
             }
         ];
 
         const selection = await vscode.window.showQuickPick(mainOptions, {
-            placeHolder: 'Settings'
+            placeHolder: 'RunX Settings'
         });
 
-        if (selection && selection.id === 'change_compiler') {
-            const subOptions = [
-                { label: 'gcc', description: 'Use GNU Compiler Collection' },
-                { label: 'tcc', description: 'Use Tiny C Compiler' }
-            ];
+        if (selection) {
+            if (selection.id === 'change_compiler') {
+                const subOptions = [
+                    { label: 'gcc', description: 'Use GNU Compiler Collection' },
+                    { label: 'tcc', description: 'Use Tiny C Compiler' }
+                ];
 
-            const subSelection = await vscode.window.showQuickPick(subOptions, {
-                placeHolder: 'Select a C Compiler'
-            });
+                const subSelection = await vscode.window.showQuickPick(subOptions, {
+                    placeHolder: 'Select a C Compiler'
+                });
 
-            if (subSelection) {
-                // حفظ المترجم المختار في الـ globalState
-                await context.globalState.update('c_compiler_choice', subSelection.label);
-                vscode.window.showInformationMessage(`C Compiler successfully changed to: ${subSelection.label}`);
+                if (subSelection) {
+                    
+                    await context.globalState.update('c_compiler_choice', subSelection.label);
+                    vscode.window.showInformationMessage(`C Compiler successfully changed to: ${subSelection.label}`);
+                }
+            } else if (selection.id === 'toggle_wine_logs') {
+            
+                const newState = !hideLogs;
+                await context.globalState.update('hide_wine_logs', newState);
+                vscode.window.showInformationMessage(`Wine logs are now ${newState ? 'OFF' : 'ON'}`);
             }
         }
     });
 
-    context.subscriptions.push(testMenuDisposable);
+    context.subscriptions.push(settingsMenuDisposable);
 
     const runCDisposable = vscode.commands.registerCommand('c-cpp-runx.runC', async () => {
         const editor = vscode.window.activeTextEditor;
