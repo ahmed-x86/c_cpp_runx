@@ -18,20 +18,42 @@ export function setupDiagnostics(context: vscode.ExtensionContext) {
 
 function getGccErrorRange(lineText: string, lineIndex: number, colIndex: number, message: string): vscode.Range {
     let length = 1;
+    let startCol = colIndex;
+
     const quoteMatch = message.match(/['‘`"]([^'’`"]+)['’`"]/);
     
     if (quoteMatch) {
-        length = quoteMatch[1].length;
+        const word = quoteMatch[1];
+        length = word.length;
+        
+       
+        if (colIndex === 0) {
+            const foundIndex = lineText.indexOf(word);
+            if (foundIndex !== -1) {
+                startCol = foundIndex;
+            } else {
+                startCol = lineText.length - lineText.trimStart().length; // وضع الخط في بداية الكود
+            }
+        }
     } else {
-        const restOfLine = lineText.substring(colIndex);
-        const wordMatch = restOfLine.match(/^(\w+)/);
-        if (wordMatch) {
-            length = wordMatch[1].length;
+        if (colIndex === 0) {
+            startCol = lineText.length - lineText.trimStart().length;
+            const wordMatch = lineText.trimStart().match(/^(\w+)/);
+            if (wordMatch) {
+                length = wordMatch[1].length;
+            }
+        } else {
+            const restOfLine = lineText.substring(colIndex);
+            const wordMatch = restOfLine.match(/^(\w+)/);
+            if (wordMatch) {
+                length = wordMatch[1].length;
+            }
         }
     }
     
-    return new vscode.Range(lineIndex, colIndex, lineIndex, colIndex + length);
+    return new vscode.Range(lineIndex, startCol, lineIndex, startCol + length);
 }
+
 
 export async function checkSyntax(compiler: string, filePath: string, document: vscode.TextDocument): Promise<boolean> {
     return new Promise((resolve) => {
@@ -47,13 +69,14 @@ export async function checkSyntax(compiler: string, filePath: string, document: 
             const diagnostics: vscode.Diagnostic[] = [];
             const errorRanges: vscode.Range[] = [];
 
-            
-            const gccRegex = /^(?:[a-zA-Z]:\\[^:]+|[^:]+):(\d+):(\d+):\s+(error|warning|fatal error):\s+(.*)$/gm;
+           
+            const compilerRegex = /^(?:[a-zA-Z]:\\[^:]+|[^:]+):(\d+)(?::(\d+))?:\s+(error|warning|fatal error|fatal):\s+(.*)$/gmi;
             let match;
 
-            while ((match = gccRegex.exec(output)) !== null) {
+            while ((match = compilerRegex.exec(output)) !== null) {
                 const line = parseInt(match[1], 10) - 1; 
-                const col = parseInt(match[2], 10) - 1;
+                
+                const col = match[2] ? parseInt(match[2], 10) - 1 : 0; 
                 const severityStr = match[3].toLowerCase();
                 const message = match[4];
 
@@ -186,7 +209,7 @@ export function activate(context: vscode.ExtensionContext) {
         });
 
         if (selection) {
-            
+            // فحص الكود قبل إرساله للتيرمنال
             let compilerToCheck = compiler;
             if (selection.id === 'runx-wine') {
                 compilerToCheck = (fileExt === '.c') ? 'x86_64-w64-mingw32-gcc' : 'x86_64-w64-mingw32-g++';
@@ -194,7 +217,7 @@ export function activate(context: vscode.ExtensionContext) {
             
             const isSyntaxValid = await checkSyntax(compilerToCheck, filePath, document);
             if (!isSyntaxValid) {
-                return; 
+                return; // إيقاف العملية إذا وجدنا أخطاء
             }
 
             const terminalName = 'C/C++ RunX';
