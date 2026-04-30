@@ -1,15 +1,120 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
+import * as cp from 'child_process';
+import * as fs from 'fs';
 
+// ==========================================
+// متغيرات نظام الأخطاء والديكورات
+// ==========================================
+export let diagnosticCollection: vscode.DiagnosticCollection;
+
+const errorGutterDecoration = vscode.window.createTextEditorDecorationType({
+    gutterIconPath: vscode.Uri.parse(`data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2016%2016%22%3E%3Ccircle%20cx%3D%228%22%20cy%3D%228%22%20r%3D%224%22%20fill%3D%22%23e51400%22%2F%3E%3C%2Fsvg%3E`),
+    gutterIconSize: '60%'
+});
+
+export function setupDiagnostics(context: vscode.ExtensionContext) {
+    diagnosticCollection = vscode.languages.createDiagnosticCollection('c_cpp_runx');
+    context.subscriptions.push(diagnosticCollection);
+}
+
+function getGccErrorRange(lineText: string, lineIndex: number, colIndex: number, message: string): vscode.Range {
+    let length = 1;
+    const quoteMatch = message.match(/['‘`"]([^'’`"]+)['’`"]/);
+    
+    if (quoteMatch) {
+        length = quoteMatch[1].length;
+    } else {
+        const restOfLine = lineText.substring(colIndex);
+        const wordMatch = restOfLine.match(/^(\w+)/);
+        if (wordMatch) {
+            length = wordMatch[1].length;
+        }
+    }
+    
+    return new vscode.Range(lineIndex, colIndex, lineIndex, colIndex + length);
+}
+
+export async function checkSyntax(compiler: string, filePath: string, document: vscode.TextDocument): Promise<boolean> {
+    return new Promise((resolve) => {
+        const dirPath = path.dirname(filePath);
+        const fileName = path.basename(filePath);
+        
+        // استخدام -fsyntax-only مع gcc/g++ و -c مع tcc
+        const checkArgs = compiler.includes('tcc') ? '-c' : '-fsyntax-only';
+        const cmd = `${compiler} ${checkArgs} "${fileName}"`;
+
+        cp.exec(cmd, { cwd: dirPath }, (error, stdout, stderr) => {
+            const output = (stderr || '') + '\n' + (stdout || '');
+            const diagnostics: vscode.Diagnostic[] = [];
+            const errorRanges: vscode.Range[] = [];
+
+            // Regex يتوافق مع مخرجات GCC (يدعم مسارات الويندوز واللينكس)
+            const gccRegex = /^(?:[a-zA-Z]:\\[^:]+|[^:]+):(\d+):(\d+):\s+(error|warning|fatal error):\s+(.*)$/gm;
+            let match;
+
+            while ((match = gccRegex.exec(output)) !== null) {
+                const line = parseInt(match[1], 10) - 1; 
+                const col = parseInt(match[2], 10) - 1;
+                const severityStr = match[3].toLowerCase();
+                const message = match[4];
+
+                const severity = severityStr.includes('warning') ? vscode.DiagnosticSeverity.Warning : vscode.DiagnosticSeverity.Error;
+                
+                const safeLine = Math.max(0, Math.min(line, document.lineCount - 1));
+                const lineText = document.lineAt(safeLine).text;
+                const safeCol = Math.max(0, Math.min(col, lineText.length));
+
+                const range = getGccErrorRange(lineText, safeLine, safeCol, message);
+                
+                diagnostics.push(new vscode.Diagnostic(range, `RunX: ${message}`, severity));
+                
+                if (severity === vscode.DiagnosticSeverity.Error) {
+                    errorRanges.push(range);
+                }
+            }
+
+            const editor = vscode.window.activeTextEditor;
+
+            if (diagnostics.length > 0) {
+                diagnosticCollection.set(document.uri, diagnostics);
+                if (editor && editor.document.uri.toString() === document.uri.toString()) {
+                    editor.setDecorations(errorGutterDecoration, errorRanges);
+                }
+                
+                const hasErrors = diagnostics.some(d => d.severity === vscode.DiagnosticSeverity.Error);
+                if (hasErrors) {
+                    vscode.window.showErrorMessage(`C/C++ RunX: Found compilation errors. Check the red squiggles! ❌`);
+                    resolve(false); 
+                    return;
+                }
+            }
+            
+            diagnosticCollection.clear();
+            if (editor) {
+                editor.setDecorations(errorGutterDecoration, []);
+            }
+            
+            if (compiler.includes('tcc')) {
+                const tempObj = path.join(dirPath, fileName.replace(/\.[^/.]+$/, ".o"));
+                if (fs.existsSync(tempObj)) fs.unlinkSync(tempObj);
+            }
+            
+            resolve(true); 
+        });
+    });
+}
+
+// ==========================================
+// الدالة الرئيسية للإضافة
+// ==========================================
 export function activate(context: vscode.ExtensionContext) {
 
-    
-    const getCCompiler = () => context.globalState.get<string>('c_compiler_choice', 'gcc');
-    
-    
-    const getHideWineLogs = () => context.globalState.get<boolean>('hide_wine_logs', false);
+    // تفعيل نظام الأخطاء
+    setupDiagnostics(context);
 
-    
+    const getCCompiler = () => context.globalState.get<string>('c_compiler_choice', 'gcc');
+    const getHideWineLogs = () => context.globalState.get<boolean>('hide_wine_logs', false);
     const isWindows = process.platform === 'win32';
 
     const disposable = vscode.commands.registerCommand('c-cpp-runx.showMenu', async () => {
@@ -32,7 +137,6 @@ export function activate(context: vscode.ExtensionContext) {
         if (['.cpp', '.c++', '.cc', '.cxx'].includes(fileExt)) {
             compiler = 'g++';
         } else if (fileExt === '.c') {
-            
             compiler = getCCompiler();
         } else {
             vscode.window.showErrorMessage('Unsupported file extension!');
@@ -41,12 +145,9 @@ export function activate(context: vscode.ExtensionContext) {
 
         await document.save();
 
-
         const outFileName = isWindows ? `${fileNameWithoutExt}.exe` : fileNameWithoutExt;
         const runPrefix = isWindows ? `.\\` : `./`;
-
         const runxName = (fileExt === '.c') ? 'RunX c' : 'RunX c++';
-
 
         const options = [
             {
@@ -79,6 +180,19 @@ export function activate(context: vscode.ExtensionContext) {
         });
 
         if (selection) {
+            // ==============================================
+            // فحص الكود قبل إرساله للتيرمنال
+            // ==============================================
+            let compilerToCheck = compiler;
+            if (selection.id === 'runx-wine') {
+                compilerToCheck = (fileExt === '.c') ? 'x86_64-w64-mingw32-gcc' : 'x86_64-w64-mingw32-g++';
+            }
+            
+            const isSyntaxValid = await checkSyntax(compilerToCheck, filePath, document);
+            if (!isSyntaxValid) {
+                return; // إيقاف العملية إذا وجدنا أخطاء
+            }
+
             const terminalName = 'C/C++ RunX';
             let terminal = vscode.window.terminals.find(t => t.name === terminalName);
             if (!terminal) {
@@ -106,16 +220,13 @@ export function activate(context: vscode.ExtensionContext) {
                 terminal.sendText(`${compiler} -S -masm=intel -fverbose-asm "${fileName}"`);
                 
             } else if (selection.id === 'runx-wine') {
-                // منطق الترجمة والتشغيل لبيئة ويندوز الوهمية
                 const crossCompiler = (fileExt === '.c') ? 'x86_64-w64-mingw32-gcc' : 'x86_64-w64-mingw32-g++';
                 const exeName = `${fileNameWithoutExt}.exe`;
                 
                 terminal.sendText(`cd "${dirPath}"`);
                 await sleep(100);
-                
                 terminal.sendText(`${crossCompiler} "${fileName}" -o "${exeName}" -static`);
                 await sleep(100);
-                
                 
                 const hideLogs = getHideWineLogs();
                 const wineCommand = hideLogs 
@@ -129,10 +240,7 @@ export function activate(context: vscode.ExtensionContext) {
 
     context.subscriptions.push(disposable);
 
-
-
     const settingsMenuDisposable = vscode.commands.registerCommand('c-cpp-runx.runxSettings', async () => {
-        
         const currentCompiler = getCCompiler();
         const hideLogs = getHideWineLogs();
 
@@ -165,12 +273,10 @@ export function activate(context: vscode.ExtensionContext) {
                 });
 
                 if (subSelection) {
-                    
                     await context.globalState.update('c_compiler_choice', subSelection.label);
                     vscode.window.showInformationMessage(`C Compiler successfully changed to: ${subSelection.label}`);
                 }
             } else if (selection.id === 'toggle_wine_logs') {
-            
                 const newState = !hideLogs;
                 await context.globalState.update('hide_wine_logs', newState);
                 vscode.window.showInformationMessage(`Wine logs are now ${newState ? 'OFF' : 'ON'}`);
@@ -182,9 +288,7 @@ export function activate(context: vscode.ExtensionContext) {
 
     const runCDisposable = vscode.commands.registerCommand('c-cpp-runx.runC', async () => {
         const editor = vscode.window.activeTextEditor;
-        if (!editor) {
-            return;
-        }
+        if (!editor) { return; }
         const document = editor.document;
         const dirPath = path.dirname(document.fileName);
         const fileName = path.basename(document.fileName);
@@ -195,15 +299,18 @@ export function activate(context: vscode.ExtensionContext) {
 
         await document.save();
 
+        const compiler = getCCompiler();
+        
+        // فحص الأخطاء قبل التشغيل المباشر
+        const isSyntaxValid = await checkSyntax(compiler, document.fileName, document);
+        if (!isSyntaxValid) return;
+
         const terminalName = 'C/C++ RunX';
         let terminal = vscode.window.terminals.find(t => t.name === terminalName);
         if (!terminal) {
             terminal = vscode.window.createTerminal(terminalName);
         }
         terminal.show();
-
-        // سحب المترجم المختار
-        const compiler = getCCompiler();
 
         const sleep = (ms: number) => new Promise(res => setTimeout(res, ms));
         terminal.sendText(`cd "${dirPath}"`);
@@ -213,12 +320,9 @@ export function activate(context: vscode.ExtensionContext) {
         terminal.sendText(`${runPrefix}"${outFileName}"`);
     });
 
-    
     const runCppDisposable = vscode.commands.registerCommand('c-cpp-runx.runCpp', async () => {
         const editor = vscode.window.activeTextEditor;
-        if (!editor) {
-            return;
-        }
+        if (!editor) { return; }
         const document = editor.document;
         const dirPath = path.dirname(document.fileName);
         const fileName = path.basename(document.fileName);
@@ -228,6 +332,10 @@ export function activate(context: vscode.ExtensionContext) {
         const runPrefix = isWindows ? `.\\` : `./`;
 
         await document.save();
+
+        // فحص الأخطاء قبل التشغيل المباشر
+        const isSyntaxValid = await checkSyntax('g++', document.fileName, document);
+        if (!isSyntaxValid) return;
 
         const terminalName = 'C/C++ RunX';
         let terminal = vscode.window.terminals.find(t => t.name === terminalName);
