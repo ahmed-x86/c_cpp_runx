@@ -28,7 +28,7 @@
     "onLanguage:c",
     "onLanguage:cpp",
     "onCommand:c-cpp-runx.showMenu",
-    "onCommand:c-cpp-runx.showTestMenu",
+    "onCommand:c-cpp-runx.runxSettings",
     "onCommand:c-cpp-runx.runC",
     "onCommand:c-cpp-runx.runCpp"
   ],
@@ -49,8 +49,8 @@
         "title": "C/C++ RunX: Run C++ File"
       },
       {
-        "command": "c-cpp-runx.showTestMenu",
-        "title": "C/C++ RunX: Settings (Compiler)",
+        "command": "c-cpp-runx.runxSettings",
+        "title": "C/C++ RunX: Settings",
         "icon": "$(gear)"
       }
     ],
@@ -82,7 +82,7 @@
       ],
       "editor/title": [
         {
-          "command": "c-cpp-runx.showTestMenu",
+          "command": "c-cpp-runx.runxSettings",
           "group": "navigation@2",
           "when": "resourceLangId == c || resourceLangId == cpp"
         }
