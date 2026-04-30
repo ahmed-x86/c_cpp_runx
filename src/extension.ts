@@ -26,7 +26,6 @@ function getGccErrorRange(lineText: string, lineIndex: number, colIndex: number,
         const word = quoteMatch[1];
         length = word.length;
         
-       
         if (colIndex === 0) {
             const foundIndex = lineText.indexOf(word);
             if (foundIndex !== -1) {
@@ -60,7 +59,6 @@ export async function checkSyntax(compiler: string, filePath: string, document: 
         const dirPath = path.dirname(filePath);
         const fileName = path.basename(filePath);
         
-        
         const checkArgs = compiler.includes('tcc') ? '-c' : '-fsyntax-only';
         const cmd = `${compiler} ${checkArgs} "${fileName}"`;
 
@@ -69,13 +67,11 @@ export async function checkSyntax(compiler: string, filePath: string, document: 
             const diagnostics: vscode.Diagnostic[] = [];
             const errorRanges: vscode.Range[] = [];
 
-           
             const compilerRegex = /^(?:[a-zA-Z]:\\[^:]+|[^:]+):(\d+)(?::(\d+))?:\s+(error|warning|fatal error|fatal):\s+(.*)$/gmi;
             let match;
 
             while ((match = compilerRegex.exec(output)) !== null) {
                 const line = parseInt(match[1], 10) - 1; 
-                
                 const col = match[2] ? parseInt(match[2], 10) - 1 : 0; 
                 const severityStr = match[3].toLowerCase();
                 const message = match[4];
@@ -129,14 +125,11 @@ export async function checkSyntax(compiler: string, filePath: string, document: 
 
 export function activate(context: vscode.ExtensionContext) {
 
-    
     setupDiagnostics(context);
 
-    
     const getCCompiler = () => context.globalState.get<string>('c_compiler_choice', 'gcc');
     const getHideWineLogs = () => context.globalState.get<boolean>('hide_wine_logs', false);
     const getBuildProfile = () => context.globalState.get<string>('build_profile', 'Normal');
-    
     
     const getBuildFlagsStr = () => {
         const profile = getBuildProfile();
@@ -178,19 +171,20 @@ export function activate(context: vscode.ExtensionContext) {
         const runxName = (fileExt === '.c') ? 'RunX c' : 'RunX c++';
         const buildProfileInfo = getBuildProfile() === 'Normal' ? '' : ` [${getBuildProfile()}]`;
 
+        
         const options = [
             {
-                label: `$(zap) ${runxName}${buildProfileInfo}`,
+                label: `1. $(zap) ${runxName}${buildProfileInfo}`,
                 description: `Compile with ${compiler} and run natively`,
                 id: 'runx-dynamic'
             },
             {
-                label: `$(file-code) Compile to Assembly (AT&T)${buildProfileInfo}`,
+                label: `2. $(file-code) Compile to Assembly (AT&T)${buildProfileInfo}`,
                 description: 'Generate .s file',
                 id: 'asm-att'
             },
             {
-                label: `$(file-binary) Compile to Assembly (Intel)${buildProfileInfo}`,
+                label: `3. $(file-binary) Compile to Assembly (Intel)${buildProfileInfo}`,
                 description: 'Generate Intel syntax .s file',
                 id: 'asm-intel'
             }
@@ -198,18 +192,17 @@ export function activate(context: vscode.ExtensionContext) {
 
         if (!isWindows) {
             options.push({
-                label: `$(terminal-cmd) Compile to Windows & Run (Wine)${buildProfileInfo}`,
+                label: `4. $(terminal-cmd) Compile to Windows & Run (Wine)${buildProfileInfo}`,
                 description: 'Cross-compile via MinGW and execute with Wine',
                 id: 'runx-wine'
             });
         }
 
         const selection = await vscode.window.showQuickPick(options, {
-            placeHolder: 'Select a build/run option...'
+            placeHolder: 'Select a build/run option... (Press 1-4 to quickly select)'
         });
 
         if (selection) {
-            // فحص الكود قبل إرساله للتيرمنال
             let compilerToCheck = compiler;
             if (selection.id === 'runx-wine') {
                 compilerToCheck = (fileExt === '.c') ? 'x86_64-w64-mingw32-gcc' : 'x86_64-w64-mingw32-g++';
@@ -217,7 +210,7 @@ export function activate(context: vscode.ExtensionContext) {
             
             const isSyntaxValid = await checkSyntax(compilerToCheck, filePath, document);
             if (!isSyntaxValid) {
-                return; // إيقاف العملية إذا وجدنا أخطاء
+                return; 
             }
 
             const terminalName = 'C/C++ RunX';
@@ -349,7 +342,6 @@ export function activate(context: vscode.ExtensionContext) {
 
         const compiler = getCCompiler();
         
-        // فحص الأخطاء قبل التشغيل المباشر
         const isSyntaxValid = await checkSyntax(compiler, document.fileName, document);
         if (!isSyntaxValid) return;
 
@@ -383,7 +375,6 @@ export function activate(context: vscode.ExtensionContext) {
 
         await document.save();
 
-        // فحص الأخطاء قبل التشغيل المباشر
         const isSyntaxValid = await checkSyntax('g++', document.fileName, document);
         if (!isSyntaxValid) return;
 
